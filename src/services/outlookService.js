@@ -56,7 +56,7 @@ exports.getEmails = async (user) => {
             index: 'emails',
             body: {
                 query: {
-                    match: { userId: '00037ffe-7508-ee0a-0000-000000000000@84df9e7f-e9f6-40af-b435-aaaaaaaaaaaas'},
+                    match: { userId: user.id},
                 },
             }
         });
