@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env
     environment:
@@ -22,4 +22,4 @@ services:
     environment:
       - discovery.type=single-node
     ports:
-      - "9200:9200"
+      - '9200:9200'
