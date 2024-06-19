@@ -11,5 +11,6 @@ module.exports = {
         host: process.env.ELASTICSEARCH_HOST,
     },
     sessionSecret: process.env.SESSION_SECRET,
-    frontUrl: process.env.FE_URL
+    frontUrl: process.env.FE_URL,
+    DOMAIN: process.env.DOMAIN,
 };

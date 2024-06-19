@@ -75,18 +75,24 @@ This backend service synchronizes emails from Outlook and indexes them into Elas
 
 - **GET `/api/auth/outlook`**
 
-  Initiates the OAuth2 flow with Outlook.
+  _Initiates the OAuth2 flow with Outlook._
 
 - **GET `/api/auth/outlook/callback`**
 
-  Callback endpoint for Outlook OAuth2.
+  _Callback endpoint for Outlook OAuth2._
 
 ### Email Synchronization
 
 - **POST `/api/sync`**
 
-  Initiates email synchronization from Outlook to Elasticsearch.
+  _Initiates email synchronization from Outlook to Elasticsearch._
 
 - **GET `/api/emails`**
 
   Retrieves emails from Elasticsearch.
+
+### Webhook
+
+- **POST `/api/webhook`**
+
+    _Endpoint to receive notifications from Microsoft Graph. Handles initial validation and subsequent change notifications._

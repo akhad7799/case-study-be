@@ -1,5 +1,6 @@
-const config = require('../config');
-const { syncEmailData, getEmails } = require('../services/outlookService');
+const config = require('../config/config');
+const { syncEmailData, getEmails, fetchDeltaEmails, saveEmailsToElasticsearch} = require('../services/outlookService');
+const { findUserById } = require('../models/userModel')
 
 exports.addAccount = (req, res) => {
     res.redirect(config.frontUrl);
@@ -24,3 +25,27 @@ exports.getEmails = async (req, res) => {
         res.status(500).json({ message: 'Fetching emails failed', error });
     }
 };
+
+exports.webhook = async (req, res) => {
+    const validationToken = req.query.validationToken;
+
+    if (validationToken) {
+        res.status(200).send(validationToken);
+    } else {
+        console.log('Received notification:', req.body);
+
+        const userId = req.body.value[0]?.resourceData?.userId;
+        const user = await findUserById(userId);
+        const accessToken = user.accessToken;
+        const deltaLink = user.deltaLink;
+
+        if (deltaLink) {
+            const changes = await fetchDeltaEmails(accessToken, deltaLink);
+            await saveEmailsToElasticsearch(changes, user.id);
+
+            console.log('Delta Changes:', changes);
+        }
+
+        res.sendStatus(202);
+    }
+}

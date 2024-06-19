@@ -1,8 +1,6 @@
-const { Client } = require('@elastic/elasticsearch');
 const axios = require('axios');
-const config = require('../config');
-
-const esClient = new Client({ node: config.elasticsearch.host });
+const config = require('../config/config');
+const esClient = require('../config/elasticsearch')
 
 const fetchOutlookEmails = async (accessToken) => {
     const response = await axios.get('https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages', {
@@ -38,7 +36,7 @@ const saveEmailsToElasticsearch = async (emails, userId) => {
     }
 };
 
-exports.syncEmailData = async (user) => {
+const syncEmailData = async (user) => {
     try {
         const emails = await fetchOutlookEmails(user.accessToken);
 
@@ -50,7 +48,7 @@ exports.syncEmailData = async (user) => {
     }
 };
 
-exports.getEmails = async (user) => {
+const getEmails = async (user) => {
     try {
         const { body } = await esClient.search({
             index: 'emails',
@@ -67,3 +65,47 @@ exports.getEmails = async (user) => {
         throw error;
     }
 };
+
+const fetchInitialEmails = async (accessToken) => {
+    const response = await axios.get('https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages/delta', {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+            '$select': 'id,subject,from,toRecipients,receivedDateTime,isRead',
+        },
+    });
+
+    return {
+        emails: response.data.value,
+        deltaLink: response.data['@odata.deltaLink'],
+    };
+};
+
+const fetchDeltaEmails = async (accessToken, deltaLink) => {
+    const response = await axios.get(deltaLink, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    return response.data.value;
+};
+
+const fetchUserProfile = async (accessToken) => {
+    const response = await axios.get('https://graph.microsoft.com/v1.0/me', {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+    return response.data;
+};
+
+module.exports = {
+    saveEmailsToElasticsearch,
+    syncEmailData,
+    getEmails,
+    fetchInitialEmails,
+    fetchDeltaEmails,
+    fetchUserProfile
+}

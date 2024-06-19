@@ -4,10 +4,12 @@ const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
 const {Strategy: OAuth2Strategy} = require('passport-oauth2');
-const emailRoutes = require('./routes/emailRoutes');
-const config = require('./config');
-const { findOrCreateUser } = require('./models/userModel');
 const morgan = require('morgan');
+const emailRoutes = require('./routes/emailRoutes');
+const config = require('./config/config');
+const { findOrCreateUser } = require('./models/userModel');
+const { createSubscription } = require('./services/graphService');
+const { fetchInitialEmails, saveEmailsToElasticsearch, fetchUserProfile } = require('./services/outlookService');
 
 const app = express();
 
@@ -33,9 +35,14 @@ passport.use(new OAuth2Strategy({
         scope: ['openid', 'profile', 'offline_access', 'https://graph.microsoft.com/Mail.Read'],
         state: true,
     },
-    (accessToken, refreshToken, profile, done) => {
-        const user = findOrCreateUser(profile, accessToken);
-        // profile.accessToken = accessToken;
+    async (accessToken, refreshToken, profile, done) => {
+        await createSubscription(accessToken);
+
+        profile = await fetchUserProfile(accessToken);
+
+        const { emails, deltaLink } = await fetchInitialEmails(accessToken);
+        const user = await findOrCreateUser(profile, accessToken, deltaLink);
+        await saveEmailsToElasticsearch(emails, user.id);
 
         return done(null, user);
     }));

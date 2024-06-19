@@ -13,6 +13,7 @@ services:
       - ELASTICSEARCH_HOST=http://elasticsearch:9200
       - SESSION_SECRET=${SESSION_SECRET}
       - FE_URL=${FE_URL}
+      - DOMAIN=${DOMAIN}
     depends_on:
       - elasticsearch
 

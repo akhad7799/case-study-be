@@ -12,4 +12,6 @@ router.get('/auth/outlook/callback',
 router.post('/sync', emailController.syncEmails);
 router.get('/emails', emailController.getEmails);
 
+router.post('/webhook', emailController.webhook);
+
 module.exports = router;
